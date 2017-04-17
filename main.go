@@ -33,7 +33,7 @@ func main() {
 	for url, expectedStatus := range config.URLs {
 		actualStatus, err := getHTTPStatus(url)
 		if err != nil {
-			sitesToNotifyAbout += url + " " + err.Error() + " -- "
+			sitesToNotifyAbout += err.Error() + " -- "
 		} else if actualStatus != expectedStatus {
 			sitesToNotifyAbout += url + " " + strconv.Itoa(actualStatus) + " "
 		}
