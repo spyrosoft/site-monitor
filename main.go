@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -30,12 +31,16 @@ func main() {
 	loadConfig(os.Args[1])
 	sitesToNotifyAbout := ""
 	for url, expectedStatus := range config.URLs {
-		actualStatus := getHTTPStatus(url)
-		if actualStatus != expectedStatus {
-			sitesToNotifyAbout += url + " "
+		actualStatus, err := getHTTPStatus(url)
+		if err != nil {
+			sitesToNotifyAbout += url + " " + err.Error() + " -- "
+		} else if actualStatus != expectedStatus {
+			sitesToNotifyAbout += url + " " + strconv.Itoa(actualStatus) + " "
 		}
 	}
-	sendEmail(config.ToEmail, "Site Monitor - Attention", "Affected site(s): "+sitesToNotifyAbout)
+	if sitesToNotifyAbout != "" {
+		sendEmail(config.ToEmail, "Site Monitor - Attention", "Affected site(s): "+sitesToNotifyAbout)
+	}
 }
 
 func loadConfig(filePath string) {
@@ -45,12 +50,13 @@ func loadConfig(filePath string) {
 	panicOnError(error)
 }
 
-func getHTTPStatus(url string) int {
-	resp, err := http.Get("http://example.com/")
+func getHTTPStatus(url string) (status int, err error) {
+	resp, err := http.Head(url)
 	if err != nil {
-		fmt.Println(err.Error())
+		return
 	}
-	return resp.StatusCode
+	status = resp.StatusCode
+	return
 }
 
 func panicOnError(error error) {
