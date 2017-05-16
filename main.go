@@ -13,7 +13,7 @@ type Config struct {
 	URLs      map[string]int `json:"urls"`
 	Name      string         `json:"name"`
 	FromEmail string         `json:"from-email"`
-	ToEmail   string         `json:"to-email"`
+	ToEmails  []string       `json:"to-emails"`
 	Password  string         `json:"password"`
 	Host      string         `json:"host"`
 	Port      string         `json:"port"`
@@ -35,11 +35,13 @@ func main() {
 		if err != nil {
 			sitesToNotifyAbout += err.Error() + " -- "
 		} else if actualStatus != expectedStatus {
-			sitesToNotifyAbout += url + " " + strconv.Itoa(actualStatus) + " "
+			sitesToNotifyAbout += url + " Expected: " + strconv.Itoa(expectedStatus) + " Actual: " + strconv.Itoa(actualStatus) + "\n"
 		}
 	}
 	if sitesToNotifyAbout != "" {
-		sendEmail(config.ToEmail, "Site Monitor - Attention", "Affected site(s): "+sitesToNotifyAbout)
+		for _, email := range config.ToEmails {
+			sendEmail(email, "Site Monitor - Attention", "Affected site(s):\n"+sitesToNotifyAbout)
+		}
 	}
 }
 
